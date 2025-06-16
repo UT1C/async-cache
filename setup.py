@@ -1,6 +1,6 @@
 import setuptools
 
-with open("README.rst", "r") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
@@ -10,7 +10,7 @@ setuptools.setup(
     author_email="liteman1000@gmail.com",
     description="An asyncio Cache",
     long_description=long_description,
-    long_description_content_type="text/x-rst",
+    long_description_content_type="text/markdown",
     url="https://github.com/UT1C/async-cache",
     packages=setuptools.find_packages(),
     classifiers=[
