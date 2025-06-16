@@ -2,27 +2,28 @@ import asyncio
 import time
 from timeit import timeit
 
-from cache import AsyncTTL
+from cache import Cached, TTL
 
 
-@AsyncTTL(time_to_live=60)
+@Cached(TTL(60))
 async def long_expiration_fn(wait: int):
     await asyncio.sleep(wait)
     return wait
 
 
-@AsyncTTL(time_to_live=5)
+@Cached(TTL(5))
 async def short_expiration_fn(wait: int):
     await asyncio.sleep(wait)
     return wait
 
 
-@AsyncTTL(time_to_live=3)
+@Cached(TTL(3))
 async def short_cleanup_fn(wait: int):
     await asyncio.sleep(wait)
     return wait
 
-@AsyncTTL(time_to_live=3)
+
+@Cached(TTL(3))
 async def cache_clear_fn(wait: int):
     await asyncio.sleep(wait)
     return wait
@@ -38,8 +39,8 @@ def cache_hit_test():
     t_second_exec = (t3 - t2) * 1000
     print(t_first_exec)
     print(t_second_exec)
-    assert t_first_exec > 4000
-    assert t_second_exec < 4000
+    assert (t_first_exec > 4000)
+    assert (t_second_exec < 4000)
 
 
 def cache_expiration_test():
@@ -58,21 +59,31 @@ def cache_expiration_test():
     print(t_first_exec)
     print(t_second_exec)
     print(t_third_exec)
-    assert t_first_exec > 1000
-    assert t_second_exec < 1000
-    assert t_third_exec > 1000
+    assert (t_first_exec > 1000)
+    assert (t_second_exec < 1000)
+    assert (t_third_exec > 1000)
 
 
 def test_cache_refreshing_ttl():
-    t1 = timeit('asyncio.get_event_loop().run_until_complete(short_cleanup_fn(1))',
-                globals=globals(), number=1)
-    t2 = timeit('asyncio.get_event_loop().run_until_complete(short_cleanup_fn(1))',
-                globals=globals(), number=1)
-    t3 = timeit('asyncio.get_event_loop().run_until_complete(short_cleanup_fn(1, use_cache=False))',
-                globals=globals(), number=1)
+    t1 = timeit(
+        "asyncio.get_event_loop().run_until_complete(short_cleanup_fn(1))",
+        globals=globals(),
+        number=1
+    )
+    t2 = timeit(
+        "asyncio.get_event_loop().run_until_complete(short_cleanup_fn(1))",
+        globals=globals(),
+        number=1
+    )
+    t3 = timeit(
+        "asyncio.get_event_loop().run_until_complete(short_cleanup_fn(1, use_cache=False))",
+        globals=globals(),
+        number=1
+    )
 
-    assert t1 > t2
-    assert t1 - t3 <= 0.1
+    assert (t1 > t2)
+    assert (t1 - t3 <= 0.1)
+
 
 def cache_clear_test():
     # print("call function. Cache miss.")
@@ -88,9 +99,9 @@ def cache_clear_test():
     t4 = time.time()
     # print("call function third time. Cache miss)")
 
-    assert t2 - t1 > 1, t2 - t1 # Cache miss
-    assert t3 - t2 < 1, t3 - t2 # Cache hit
-    assert t4 - t3 > 1, t4 - t3 # Cache miss
+    assert (t2 - t1 > 1), t2 - t1  # Cache miss
+    assert (t3 - t2 < 1), t3 - t2  # Cache hit
+    assert (t4 - t3 > 1), t4 - t3  # Cache miss
 
 
 if __name__ == "__main__":

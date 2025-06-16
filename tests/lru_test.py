@@ -2,30 +2,31 @@ import asyncio
 import time
 from timeit import timeit
 
-from cache import AsyncLRU, AsyncTTL
+from cache import Cached, LRU, TTL
 
 
-@AsyncLRU(maxsize=128)
+@Cached(LRU(128))
 async def func(wait: int):
     await asyncio.sleep(wait)
 
-@AsyncLRU(maxsize=128)
+
+@Cached(LRU(128))
 async def cache_clear_fn(wait: int):
     await asyncio.sleep(wait)
 
 
 class TestClassFunc:
-    @AsyncLRU(maxsize=128)
+    @Cached(LRU(maxsize=128))
     async def obj_func(self, wait: int):
         await asyncio.sleep(wait)
 
     @staticmethod
-    @AsyncTTL(maxsize=128, time_to_live=None, skip_args=1)
+    @Cached(TTL(None, maxsize=128), skip_args=1)
     async def skip_arg_func(arg: int, wait: int):
         await asyncio.sleep(wait)
 
     @classmethod
-    @AsyncLRU(maxsize=128)
+    @Cached(LRU(maxsize=128))
     async def class_func(cls, wait: int):
         await asyncio.sleep(wait)
 
@@ -40,8 +41,8 @@ def test():
     t_second_exec = (t3 - t2) * 1000
     print(t_first_exec)
     print(t_second_exec)
-    assert t_first_exec > 4000
-    assert t_second_exec < 4000
+    assert (t_first_exec > 4000)
+    assert (t_second_exec < 4000)
 
 
 def test_obj_fn():
@@ -55,8 +56,8 @@ def test_obj_fn():
     t_second_exec = (t3 - t2) * 1000
     print(t_first_exec)
     print(t_second_exec)
-    assert t_first_exec > 4000
-    assert t_second_exec < 4000
+    assert (t_first_exec > 4000)
+    assert (t_second_exec < 4000)
 
 
 def test_class_fn():
@@ -69,8 +70,8 @@ def test_class_fn():
     t_second_exec = (t3 - t2) * 1000
     print(t_first_exec)
     print(t_second_exec)
-    assert t_first_exec > 4000
-    assert t_second_exec < 4000
+    assert (t_first_exec > 4000)
+    assert (t_second_exec < 4000)
 
 
 def test_skip_args():
@@ -83,8 +84,8 @@ def test_skip_args():
     t_second_exec = (t3 - t2) * 1000
     print(t_first_exec)
     print(t_second_exec)
-    assert t_first_exec > 4000
-    assert t_second_exec < 4000
+    assert (t_first_exec > 4000)
+    assert (t_second_exec < 4000)
 
 
 def test_cache_refreshing_lru():
@@ -104,8 +105,8 @@ def test_cache_refreshing_lru():
         number=1,
     )
 
-    assert t1 > t2
-    assert t1 - t3 <= 0.1
+    assert (t1 > t2)
+    assert (t1 - t3 <= 0.1)
 
 
 def test_cache_clear():
@@ -122,10 +123,9 @@ def test_cache_clear():
     t4 = time.time()
     # print("call function third time. Cache miss)")
 
-    assert t2 - t1 > 1, t2 - t1 # Cache miss
-    assert t3 - t2 < 1, t3 - t2 # Cache hit
-    assert t4 - t3 > 1, t4 - t3 # Cache miss
-
+    assert (t2 - t1 > 1), t2 - t1  # Cache miss
+    assert (t3 - t2 < 1), t3 - t2  # Cache hit
+    assert (t4 - t3 > 1), t4 - t3  # Cache miss
 
 
 if __name__ == "__main__":
