@@ -1,77 +1,68 @@
-import datetime
+from typing import Generic, TypeVar
+from collections.abc import Hashable
+from datetime import datetime, timedelta
 
-from .key import KEY
-from .lru import LRU
+from .key import SmartKey
+from .lru import LRU, AsyncLRU
+
+T = TypeVar("T")
+DefaultT = TypeVar("DefaultT")
+KeyT = TypeVar("KeyT", bound=Hashable)
+sentinel = object()
 
 
-class TTL(LRU):
-    def __init__(self, time_to_live, maxsize):
+class TTL(LRU[KeyT, tuple[T, datetime]], Generic[KeyT, T]):
+    ttl: timedelta
+
+    def __init__(self, ttl: int, maxsize: int | None = None) -> None:
         super().__init__(maxsize=maxsize)
+        self.ttl = timedelta(seconds=ttl)
 
-        self.time_to_live = (
-            datetime.timedelta(seconds=time_to_live) if time_to_live else None
-        )
-
-        self.maxsize = maxsize
-
-    def __contains__(self, key):
-        if key not in self.keys():
+    def __contains__(self, key: KeyT) -> bool:
+        if not super().__contains__(key):
             return False
-        else:
-            key_expiration = super().__getitem__(key)[1]
-            if key_expiration and key_expiration < datetime.datetime.now():
-                del self[key]
-                return False
-            else:
-                return True
 
-    def __getitem__(self, key):
-        value = super().__getitem__(key)[0]
+        expires_at = super().__getitem__(key)[1]
+        return not self._check_expired(key, expires_at)
+
+    def __getitem__(self, key: KeyT) -> T:
+        value = self.get(key, sentinel)
+        if value is sentinel:
+            raise KeyError(key)
         return value
 
-    def __setitem__(self, key, value):
-        ttl_value = (
-            (datetime.datetime.now() + self.time_to_live)
-            if self.time_to_live
-            else None
-        )
-        super().__setitem__(key, (value, ttl_value))
+    def __setitem__(self, key: KeyT, value: T):
+        expires_at = datetime.now() + self.ttl
+        super().__setitem__(key, (value, expires_at))
+
+    def get(self, key: KeyT, default: DefaultT = None) -> T | DefaultT:
+        pair = super().get(key, sentinel)
+        if pair is sentinel or self._check_expired(key, expires_at=pair[1]):
+            return default
+        return pair[0]
+
+    def _check_expired(self, key: str, expires_at: datetime) -> bool:
+        if expires_at <= datetime.now():
+            del self[key]
+            return True
+        return False
 
 
-class AsyncTTL:
-    def __init__(self, time_to_live=60, maxsize=1024, skip_args: int = 0):
+class AsyncTTL(AsyncLRU[T], Generic[T]):
+    skip_args: int
+
+    def __init__(
+        self,
+        ttl: int | None = 60,
+        maxsize: int | None = 1024,
+        skip_args: int = 0
+    ) -> None:
         """
 
-        :param time_to_live: Use time_to_live as None for non expiring cache
+        :param ttl: Use ttl as None for non expiring cache
         :param maxsize: Use maxsize as None for unlimited size cache
         :param skip_args: Use `1` to skip first arg of func in determining cache key
         """
-        self.ttl = self._TTL(time_to_live=time_to_live, maxsize=maxsize)
-        self.skip_args = skip_args
-
-    def cache_clear(self):
-        """
-        Clears the TTL cache.
-
-        This method empties the cache, removing all stored
-        entries and effectively resetting the cache.
-
-        :return: None
-        """
-        self.ttl.clear()
-
-    def __call__(self, func):
-        async def wrapper(*args, use_cache=True, **kwargs):
-            key = KEY(args[self.skip_args:], kwargs)
-            if key in self.ttl and use_cache:
-                val = self.ttl[key]
-            else:
-                self.ttl[key] = await func(*args, **kwargs)
-                val = self.ttl[key]
-
-            return val
-
-        wrapper.__name__ += func.__name__
-        wrapper.__dict__['cache_clear'] = self.cache_clear
-
-        return wrapper
+        super().__init__(maxsize, skip_args)
+        if ttl is not None:
+            self.container = TTL(ttl=ttl, maxsize=maxsize)

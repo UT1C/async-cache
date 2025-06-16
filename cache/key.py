@@ -1,24 +1,32 @@
 from typing import Any
+from collections.abc import Hashable
 
 
-class KEY:
-    def __init__(self, *args, **kwargs):
+class SmartKey:
+    args: tuple
+    kwargs: dict
+
+    def __init__(self, *args, use_cache: bool = True, **kwargs) -> None:
         self.args = args
         self.kwargs = kwargs
-        kwargs.pop("use_cache", None)
 
-    def __eq__(self, obj):
-        return hash(self) == hash(obj)
+    def __repr__(self) -> str:
+        return f"<Key object by {self.args=} {self.kwargs=}>"
 
-    def __hash__(self):
-        def _hash(param: Any):
-            if isinstance(param, tuple):
-                return tuple(map(_hash, param))
-            if isinstance(param, dict):
-                return tuple(map(_hash, param.items()))
-            elif hasattr(param, "__dict__"):
+    def __eq__(self, obj: Any) -> bool:
+        return (hash(self) == hash(obj))
+
+    def __hash__(self) -> int:
+        return hash(self._hash(self.args) + self._hash(self.kwargs))
+
+    @classmethod
+    def _hash(cls, param: Any) -> Hashable:
+        match param:
+            case tuple():
+                return tuple(map(cls._hash, param))
+            case dict():
+                return tuple(map(cls._hash, param.items()))
+            case _ if hasattr(param, "__dict__"):
                 return str(vars(param))
-            else:
+            case _:
                 return str(param)
-
-        return hash(_hash(self.args) + _hash(self.kwargs))
