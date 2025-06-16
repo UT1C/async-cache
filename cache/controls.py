@@ -56,11 +56,11 @@ class Cached(Generic[T]):
         async def wrapper(*args: P.args, use_cache: bool = True, **kwargs: P.kwargs) -> T:
             key_args = args
             # preventing copy for no reason
+            if self.skip_args:
+                key_args = key_args[self.skip_args:]
             key = SmartKey(key_args, kwargs)
 
             if use_cache:
-                if self.skip_args:
-                    key_args = key_args[self.skip_args:]
                 value = self.container.get(key, sentinel)
             else:
                 value = sentinel
