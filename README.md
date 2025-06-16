@@ -9,10 +9,10 @@ pip install git+https://github.com/UT1C/async-cache.git
 ## Basic Usage
 ```py
 # LRU Cache
-from cache import AsyncLRU
+from cache import Cached, LRU
 
 
-@AsyncLRU(maxsize=128)
+@Cached(LRU(maxsize=128))
 async def func(*args, **kwargs):
     """
     maxsize: max number of results that are cached.
@@ -22,10 +22,10 @@ async def func(*args, **kwargs):
 ```
 ```py
 # TTL Cache
-from cache import AsyncTTL
+from cache import Cached, TTL
 
 
-@AsyncTTL(time_to_live=60, maxsize=1024, skip_args=1)
+@Cached(TTL(ttl=60, maxsize=1024), skip_args=1)
 async def func(*args, **kwargs):
     """
     time_to_live: max time for which a cached result is valid (in seconds)
