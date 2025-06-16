@@ -18,6 +18,7 @@ class TTL(LRU[KeyT, tuple[T, datetime]], Generic[KeyT, T]):
         :param ttl: Use ttl as None for non expiring cache
         :param maxsize: Use maxsize as None for unlimited size cache
         """
+
         super().__init__(maxsize=maxsize)
         self.ttl = timedelta(seconds=ttl)
 

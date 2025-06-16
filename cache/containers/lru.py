@@ -15,6 +15,7 @@ class LRU(OrderedDict[KeyT, T], Generic[KeyT, T]):
         """
         :param maxsize: Use maxsize as None for unlimited size cache
         """
+
         self.maxsize = maxsize
         super().__init__(*args, **kwargs)
 
