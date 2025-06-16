@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, Generic, TypeVar, ParamSpec
-from collections.abc import Callable, Hashable, Awaitable
-from collections import OrderedDict
+from collections.abc import Callable, Hashable, Awaitable, MutableMapping
 import functools
 
 from .key import SmartKey
@@ -12,34 +11,6 @@ KeyT = TypeVar("KeyT", bound=Hashable)
 sentinel = object()
 
 
-class LRU(OrderedDict[KeyT, T], Generic[KeyT, T]):
-    maxsize: int | None
-
-    def __init__(self, maxsize: int | None = None, *args, **kwargs) -> None:
-        self.maxsize = maxsize
-        super().__init__(*args, **kwargs)
-
-    def __getitem__(self, key: KeyT) -> T:
-        value = self.get(key, sentinel)
-        if value is sentinel:
-            raise KeyError(key)
-        return value
-
-    def __setitem__(self, key: KeyT, value: T):
-        super().__setitem__(key, value)
-        if self.maxsize is not None and len(self) > self.maxsize:
-            oldest_key = next(iter(self))
-            del self[oldest_key]
-
-    def get(self, key: KeyT, default: DefaultT = None) -> T | DefaultT:
-        value = super().get(key, sentinel)
-        if value is not sentinel:
-            self.move_to_end(key)
-            return value
-        else:
-            return default
-
-
 if TYPE_CHECKING:
     class CachedFunc(function, Generic[P, T]):  # noqa: F821
         def __call__(self, *args: P.args, use_cache: bool = True, **kwargs: P.kwargs) -> T:
@@ -49,17 +20,17 @@ if TYPE_CHECKING:
             ...
 
 
-class AsyncLRU(Generic[T]):
-    container: LRU[SmartKey, T]
+class Cached(Generic[T]):
+    container: MutableMapping[SmartKey, T]
     skip_args: int
 
-    def __init__(self, maxsize: int | None = 128, skip_args: int = 0) -> None:
+    def __init__(self, container: MutableMapping[SmartKey, T], skip_args: int = 0) -> None:
         """
-        :param maxsize: Use maxsize as None for unlimited size cache
+        :param container: Use mappings (LRU, TTL, ...) from module
         :param skip_args: Use `1` to skip first arg of func in determining cache key
         """
 
-        self.container = LRU(maxsize=maxsize)
+        self.container = container
         self.skip_args = skip_args
 
     def cache_clear(self):

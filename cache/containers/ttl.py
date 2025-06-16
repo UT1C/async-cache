@@ -2,8 +2,7 @@ from typing import Generic, TypeVar
 from collections.abc import Hashable
 from datetime import datetime, timedelta
 
-from .key import SmartKey
-from .lru import LRU, AsyncLRU
+from .lru import LRU
 
 T = TypeVar("T")
 DefaultT = TypeVar("DefaultT")
@@ -15,6 +14,10 @@ class TTL(LRU[KeyT, tuple[T, datetime]], Generic[KeyT, T]):
     ttl: timedelta
 
     def __init__(self, ttl: int, maxsize: int | None = None) -> None:
+        """
+        :param ttl: Use ttl as None for non expiring cache
+        :param maxsize: Use maxsize as None for unlimited size cache
+        """
         super().__init__(maxsize=maxsize)
         self.ttl = timedelta(seconds=ttl)
 
@@ -46,21 +49,3 @@ class TTL(LRU[KeyT, tuple[T, datetime]], Generic[KeyT, T]):
             del self[key]
             return True
         return False
-
-
-class AsyncTTL(AsyncLRU):
-    def __init__(
-        self,
-        ttl: int | None = 60,
-        maxsize: int | None = 1024,
-        skip_args: int = 0
-    ) -> None:
-        """
-        :param ttl: Use ttl as None for non expiring cache
-        :param maxsize: Use maxsize as None for unlimited size cache
-        :param skip_args: Use `1` to skip first arg of func in determining cache key
-        """
-
-        super().__init__(maxsize, skip_args)
-        if ttl is not None:
-            self.container = TTL(ttl=ttl, maxsize=maxsize)
