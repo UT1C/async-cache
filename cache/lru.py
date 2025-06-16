@@ -58,6 +58,7 @@ class AsyncLRU(Generic[T]):
         :param maxsize: Use maxsize as None for unlimited size cache
         :param skip_args: Use `1` to skip first arg of func in determining cache key
         """
+
         self.container = LRU(maxsize=maxsize)
         self.skip_args = skip_args
 
@@ -70,6 +71,7 @@ class AsyncLRU(Generic[T]):
 
         :return: None
         """
+
         self.container.clear()
 
     def __call__(self, func: Callable[P, Awaitable[T]]) -> "CachedFunc[P, Awaitable[T]]":

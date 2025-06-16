@@ -48,9 +48,7 @@ class TTL(LRU[KeyT, tuple[T, datetime]], Generic[KeyT, T]):
         return False
 
 
-class AsyncTTL(AsyncLRU[T], Generic[T]):
-    skip_args: int
-
+class AsyncTTL(AsyncLRU):
     def __init__(
         self,
         ttl: int | None = 60,
@@ -58,11 +56,11 @@ class AsyncTTL(AsyncLRU[T], Generic[T]):
         skip_args: int = 0
     ) -> None:
         """
-
         :param ttl: Use ttl as None for non expiring cache
         :param maxsize: Use maxsize as None for unlimited size cache
         :param skip_args: Use `1` to skip first arg of func in determining cache key
         """
+
         super().__init__(maxsize, skip_args)
         if ttl is not None:
             self.container = TTL(ttl=ttl, maxsize=maxsize)
