@@ -4,40 +4,41 @@ from .key import KEY
 from .lru import LRU
 
 
-class AsyncTTL:
-    class _TTL(LRU):
-        def __init__(self, time_to_live, maxsize):
-            super().__init__(maxsize=maxsize)
+class TTL(LRU):
+    def __init__(self, time_to_live, maxsize):
+        super().__init__(maxsize=maxsize)
 
-            self.time_to_live = (
-                datetime.timedelta(seconds=time_to_live) if time_to_live else None
-            )
+        self.time_to_live = (
+            datetime.timedelta(seconds=time_to_live) if time_to_live else None
+        )
 
-            self.maxsize = maxsize
+        self.maxsize = maxsize
 
-        def __contains__(self, key):
-            if key not in self.keys():
+    def __contains__(self, key):
+        if key not in self.keys():
+            return False
+        else:
+            key_expiration = super().__getitem__(key)[1]
+            if key_expiration and key_expiration < datetime.datetime.now():
+                del self[key]
                 return False
             else:
-                key_expiration = super().__getitem__(key)[1]
-                if key_expiration and key_expiration < datetime.datetime.now():
-                    del self[key]
-                    return False
-                else:
-                    return True
+                return True
 
-        def __getitem__(self, key):
-            value = super().__getitem__(key)[0]
-            return value
+    def __getitem__(self, key):
+        value = super().__getitem__(key)[0]
+        return value
 
-        def __setitem__(self, key, value):
-            ttl_value = (
-                (datetime.datetime.now() + self.time_to_live)
-                if self.time_to_live
-                else None
-            )
-            super().__setitem__(key, (value, ttl_value))
+    def __setitem__(self, key, value):
+        ttl_value = (
+            (datetime.datetime.now() + self.time_to_live)
+            if self.time_to_live
+            else None
+        )
+        super().__setitem__(key, (value, ttl_value))
 
+
+class AsyncTTL:
     def __init__(self, time_to_live=60, maxsize=1024, skip_args: int = 0):
         """
 
