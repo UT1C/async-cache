@@ -1,9 +1,9 @@
 # async-cache
-A caching solution for asyncio
+A caching solution for asyncio. Heavily changed fork of `async-cache` package.
 
 ## Installation
 ```
-pip install git+https://github.com/UT1C/async-cache.git
+pip install utic-cache
 ```
 
 ## Basic Usage
@@ -41,7 +41,7 @@ async def func(*args, **kwargs):
 
 ## Advanced Usage
 ```py
-from cache import AsyncLRU
+from cache import Cached, LRU
 
 
 class CustomDataClass:
@@ -49,7 +49,7 @@ class CustomDataClass:
     value: int
 
 
-@AsyncLRU(maxsize=128)
+@Cached(LRU(maxsize=128))
 async def func(model: "CustomDataClass"):
     ...  # function logic
 

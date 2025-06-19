@@ -1,0 +1,33 @@
+[project]
+name = "utic-cache"
+version = "2.2.0"
+description = "An asyncio Cache"
+authors = [
+    {name = "lightmanLP", email = "liteman1000@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.urls]
+homepage = "https://github.com/UT1C/async-cache"
+repository = "https://github.com/UT1C/async-cache"
+
+[tool.poetry]
+packages = [
+    {include = "utic-cache"},
+]
+keywords = ["asyncio", "lru", "cache", "async", "cache", "lru-cache", "ttl"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.2.0"
