@@ -1,4 +1,4 @@
-# async-cache
+# utic-cache
 A caching solution for asyncio. Heavily changed fork of `async-cache` package.
 
 ## Installation
