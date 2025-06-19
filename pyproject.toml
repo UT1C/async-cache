@@ -1,6 +1,6 @@
 [project]
 name = "utic-cache"
-version = "2.2.0"
+version = "2.2.1"
 description = "An asyncio Cache"
 authors = [
     {name = "lightmanLP", email = "liteman1000@gmail.com"}
@@ -16,7 +16,7 @@ repository = "https://github.com/UT1C/async-cache"
 
 [tool.poetry]
 packages = [
-    {include = "utic-cache"},
+    {include = "utic_cache"},
 ]
 keywords = ["asyncio", "lru", "cache", "async", "cache", "lru-cache", "ttl"]
 classifiers = [
