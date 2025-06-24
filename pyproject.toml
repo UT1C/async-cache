@@ -1,6 +1,6 @@
 [project]
 name = "utic-cache"
-version = "2.2.1"
+version = "2.2.2"
 description = "An asyncio Cache"
 authors = [
     {name = "lightmanLP", email = "liteman1000@gmail.com"}
